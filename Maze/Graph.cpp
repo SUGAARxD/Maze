@@ -58,7 +58,7 @@ Edge* Graph::minimumWeightEdge(Node* node)
 	uint32_t minWeight = 0;
 	for (Edge* edge : m_graph[node])
 	{
-		if (edge->getWeight() < minWeight || minWeight == 0)
+		if ((edge->getWeight() < minWeight || minWeight == 0) && edge->getWeight() != 0)
 		{
 			minWeight = edge->getWeight();
 			minimumWeightEdge = edge;
