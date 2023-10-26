@@ -4,10 +4,58 @@ UIClass::UIClass(QWidget* parent)
     : QMainWindow(parent)
 {
     ui.setupUi(this);
+
+    Maze maze;
+    mazeComponents = maze.getMaze();
+    mazeComponentsPerLine = mazeComponents[0].size();
+    mazeComponentsPerColumn = mazeComponents.size();
+    path = maze.mazeSolutionPath();
+    currentPathIndex = path.size() - 1;
+    coloringInProgress = false; 
+
+    drawTimer = new QTimer(this);
+    drawTimer->setInterval(800);
+
+    connect(drawTimer, &QTimer::timeout, this, &UIClass::drawPathRectangle);
+
+    startButton = new QPushButton("Solve", this);
+    startButton->setFixedSize(this->rect().width() / mazeComponentsPerLine, this->rect().height() * 0.07 + 1);
+    startButton->move((mazeComponentsPerLine - 1) * this->rect().width() / mazeComponentsPerLine, 0);
+
+    connect(startButton, &QPushButton::clicked, this, &UIClass::toggleColoringProcess);
+
 }
 
 UIClass::~UIClass()
 {}
+
+void UIClass::drawPathRectangle()
+{
+    if (currentPathIndex >= 0)
+    {
+        path[currentPathIndex]->setColor(QColor("#b5e5ec"));
+    }
+    if (currentPathIndex < 0)
+    {
+        drawTimer->stop();
+        startButton->setText("Solved!");
+        startButton->setText("Solved!");
+        for (int32_t index = path.size() - 1; index >= 0; --index)
+            path[index]->setColor(QColor("#01ff71"));
+    }
+    --currentPathIndex;
+    update();
+}
+
+void UIClass::toggleColoringProcess()
+{
+    if (!coloringInProgress)
+    {
+        drawTimer->start();
+        coloringInProgress = true;
+        startButton->setText("Solving");
+    }
+}
 
 void UIClass::paintEvent(QPaintEvent* event)
 {
@@ -16,20 +64,13 @@ void UIClass::paintEvent(QPaintEvent* event)
 
     QRect widgetRect = this->rect();
     uint32_t widgetWidth = widgetRect.width();
-    uint32_t widgetHeight = widgetRect.height() * 0.95;
-
-
-    Maze maze;
-    std::vector<std::vector<Node*>> mazeComponents = maze.getMaze();
-
-    uint32_t mazeComponentsPerLine = mazeComponents[0].size();
-    uint32_t mazeComponentsPerColumn = mazeComponents.size();
+    uint32_t widgetHeight = widgetRect.height() * 0.93;
 
     uint32_t rectangleWidth = widgetWidth / mazeComponentsPerLine;
     uint32_t rectangleHeight = widgetHeight / mazeComponentsPerColumn;
 
     uint32_t rectangleX = 0;
-    uint32_t rectangleY = widgetRect.height() * 0.05;
+    uint32_t rectangleY = widgetRect.height() * 0.07;
 
     painter.setBrush(QBrush("#bdf2e8"));
     painter.drawRect(0, 0, rectangleWidth * mazeComponentsPerLine, rectangleY);
@@ -53,11 +94,11 @@ void UIClass::paintEvent(QPaintEvent* event)
         }
         rectangleY += rectangleHeight;
     }
-    rectangleY = widgetRect.height() * 0.05;
-    std::vector<Node*> path = maze.mazeSolutionPath();
-    for (int32_t index = path.size() - 1; index >= 0; --index)
-    {
-        painter.setBrush(QBrush("#b5e5ec"));
-        painter.drawRect(path[index]->getX() * rectangleWidth, path[index]->getY() * rectangleHeight + rectangleY, rectangleWidth, rectangleHeight);
-    }
+}
+
+void UIClass::resizeEvent(QResizeEvent* event)
+{
+    startButton->setFixedSize(this->rect().width() / mazeComponentsPerLine, this->rect().height() * 0.07 + 1);
+    startButton->move((mazeComponentsPerLine - 1) * this->rect().width() / mazeComponentsPerLine, 0);
+    QMainWindow::resizeEvent(event);
 }
