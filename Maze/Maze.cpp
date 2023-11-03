@@ -65,8 +65,6 @@ std::vector<std::vector<Node*>> Maze::getMaze()
 
 void Maze::DFS(Node* node, std::unordered_set<Node*>& verified, std::unordered_map<Node*, std::vector<Edge*>>& graphComponents, uint32_t distance)
 {
-    if (verified.find(node) == verified.end())
-    {
         verified.insert(node);
         for (Edge* edge : graphComponents[node])
             if (verified.find(edge->getNeighbor(node)) == verified.end())
@@ -74,5 +72,4 @@ void Maze::DFS(Node* node, std::unordered_set<Node*>& verified, std::unordered_m
                 edge->setWeight(distance);
                 DFS(edge->getNeighbor(node), verified, graphComponents, distance + 1);
             }
-    }
 }
